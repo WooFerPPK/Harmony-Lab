@@ -1,0 +1,52 @@
+@use "@styles/variables" as *;
+@use "@styles/mixins" as *;
+
+.transport {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-lg;
+}
+
+.transport__buttons {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.transport__btn {
+  @include button-ghost;
+  min-width: 80px;
+}
+
+.transport__btn--primary {
+  @include button-primary;
+}
+
+.transport__indicator {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  text-align: right;
+}
+
+.transport__tag {
+  @include label;
+  font-size: 0.8rem;
+  color: $color-accent-strong;
+}
+
+.transport__details {
+  font-size: 0.95rem;
+  color: $color-text-muted;
+}
+
+@media (max-width: 720px) {
+  .transport {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .transport__indicator {
+    text-align: left;
+  }
+}

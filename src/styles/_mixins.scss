@@ -1,0 +1,62 @@
+@mixin card {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.2));
+  border-radius: $radius-lg;
+  border: 1px solid $color-border;
+  box-shadow: $shadow-soft;
+  padding: $spacing-lg;
+}
+
+@mixin panel-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: $spacing-md;
+}
+
+@mixin button-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.65rem 1.1rem;
+  border-radius: $radius-md;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+@mixin button-primary {
+  @include button-base;
+  background: linear-gradient(135deg, $color-accent, $color-accent-strong);
+  color: $color-text;
+  box-shadow: 0 12px 24px rgba(127, 140, 255, 0.25);
+
+  &:hover,
+  &:focus-visible {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 30px rgba(127, 140, 255, 0.3);
+  }
+}
+
+@mixin button-ghost {
+  @include button-base;
+  background: rgba(255, 255, 255, 0.06);
+  color: $color-text;
+  border: 1px solid $color-border;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+@mixin label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $color-text-muted;
+}

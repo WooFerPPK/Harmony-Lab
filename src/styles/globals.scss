@@ -1,0 +1,82 @@
+@use "./variables" as *;
+@use "./mixins" as *;
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: $font-family;
+  background:
+    radial-gradient(circle at top left, rgba(127, 140, 255, 0.12), transparent),
+    $color-background;
+  color: $color-text;
+  min-height: 100vh;
+  padding: $spacing-lg;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.app__layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: $spacing-lg;
+}
+
+.app__column {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.app__column--visual {
+  min-height: 360px;
+}
+
+.panel {
+  @include card;
+}
+
+.panel__title {
+  @include panel-title;
+}
+
+input[type="range"] {
+  width: 100%;
+}
+
+button:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+input:focus-visible {
+  outline: 2px solid $color-accent;
+  outline-offset: 2px;
+}
+
+.tooltip {
+  position: relative;
+  cursor: help;
+}
