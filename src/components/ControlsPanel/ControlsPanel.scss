@@ -1,0 +1,41 @@
+@use "@styles/variables" as *;
+@use "@styles/mixins" as *;
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.controls__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: $spacing-md;
+}
+
+.controls__field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  background: $color-surface-alt;
+  padding: $spacing-sm;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+}
+
+.controls__label {
+  @include label;
+}
+
+.controls__value {
+  font-size: 0.85rem;
+  color: $color-text-muted;
+}
+
+select,
+input[type="range"] {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  padding: 0.45rem 0.6rem;
+}

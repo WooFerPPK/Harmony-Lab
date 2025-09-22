@@ -1,0 +1,55 @@
+@use "@styles/variables" as *;
+@use "@styles/mixins" as *;
+
+.presets {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.presets__row {
+  display: flex;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.presets__field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  flex: 1 1 200px;
+}
+
+.presets__label {
+  @include label;
+}
+
+.presets__btn {
+  @include button-ghost;
+}
+
+.presets__btn--primary {
+  @include button-primary;
+}
+
+.presets__import {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.presets__import textarea {
+  min-height: 120px;
+  padding: $spacing-sm;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background: $color-surface-alt;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.presets__status {
+  margin: 0;
+  font-size: 0.85rem;
+  color: $color-text-muted;
+}

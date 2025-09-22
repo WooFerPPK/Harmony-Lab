@@ -1,0 +1,50 @@
+@use "@styles/variables" as *;
+@use "@styles/mixins" as *;
+
+.mixer {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.mixer__toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.mixer__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.4rem 0.75rem;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  font-size: 0.85rem;
+}
+
+.mixer__sliders {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: $spacing-md;
+}
+
+.mixer__field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  background: $color-surface-alt;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  padding: $spacing-sm;
+}
+
+.mixer__label {
+  @include label;
+}
+
+.mixer__value {
+  font-size: 0.85rem;
+  color: $color-text-muted;
+}
