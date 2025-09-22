@@ -21,6 +21,13 @@ const KEY_OPTIONS = [
 const MODE_OPTIONS = ["major", "minor"] as const;
 const BAR_OPTIONS = [4, 8, 16] as const;
 
+function findKeyOption(
+  value: string,
+  fallback: (typeof KEY_OPTIONS)[number],
+): (typeof KEY_OPTIONS)[number] {
+  return KEY_OPTIONS.find((option) => option === value) ?? fallback;
+}
+
 export function ControlsPanel() {
   const settings = useAppStore((state) => state.settings);
   const updateSetting = useAppStore((state) => state.updateSetting);
@@ -41,7 +48,9 @@ export function ControlsPanel() {
           <span className="controls__label">Key</span>
           <select
             value={settings.key}
-            onChange={(event) => updateSetting("key", event.target.value)}
+            onChange={(event) =>
+              updateSetting("key", findKeyOption(event.target.value, settings.key))
+            }
           >
             {KEY_OPTIONS.map((option) => (
               <option key={option} value={option}>

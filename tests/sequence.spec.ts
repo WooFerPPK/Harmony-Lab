@@ -43,7 +43,7 @@ describe("sequence generation", () => {
     parts.forEach((part) => {
       const events = sequence.events.filter((event) => event.part === part);
       const sum = events.reduce((acc, event) => acc + event.durSteps, 0);
-      const expectedActive = sequence.generated[part].reduce((acc, value) => {
+      const expectedActive = sequence.generated[part].reduce<number>((acc, value) => {
         return acc + (value === null ? 0 : STEP_SIZES[part]);
       }, 0);
       expect(sum).toBe(expectedActive);
