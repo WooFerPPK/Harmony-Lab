@@ -7,6 +7,7 @@ interface VoiceConfig {
   decay: number;
   sustain: number;
   release: number;
+  level: number;
 }
 
 interface DrumToneConfig {
@@ -38,9 +39,30 @@ interface SynthStyleConfig {
 const SYNTH_STYLE_CONFIG: Record<SynthStyle, SynthStyleConfig> = {
   modern: {
     voices: {
-      bass: { wave: "sawtooth", attack: 0.01, decay: 0.35, sustain: 0.6, release: 0.2 },
-      arp: { wave: "square", attack: 0.005, decay: 0.25, sustain: 0.4, release: 0.15 },
-      lead: { wave: "sawtooth", attack: 0.01, decay: 0.4, sustain: 0.45, release: 0.25 },
+      bass: {
+        wave: "sawtooth",
+        attack: 0.01,
+        decay: 0.35,
+        sustain: 0.6,
+        release: 0.2,
+        level: 0.75,
+      },
+      arp: {
+        wave: "square",
+        attack: 0.005,
+        decay: 0.25,
+        sustain: 0.4,
+        release: 0.15,
+        level: 0.6,
+      },
+      lead: {
+        wave: "sawtooth",
+        attack: 0.01,
+        decay: 0.4,
+        sustain: 0.45,
+        release: 0.25,
+        level: 0.85,
+      },
     },
     drums: {
       kick: { wave: "sine", startFreq: 120, endFreq: 40, decay: 0.5, level: 1 },
@@ -50,9 +72,30 @@ const SYNTH_STYLE_CONFIG: Record<SynthStyle, SynthStyleConfig> = {
   },
   chiptune: {
     voices: {
-      bass: { wave: "square", attack: 0.001, decay: 0.08, sustain: 0.5, release: 0.08 },
-      arp: { wave: "square", attack: 0.001, decay: 0.06, sustain: 0.25, release: 0.05 },
-      lead: { wave: "square", attack: 0.001, decay: 0.07, sustain: 0.3, release: 0.06 },
+      bass: {
+        wave: "square",
+        attack: 0.001,
+        decay: 0.08,
+        sustain: 0.5,
+        release: 0.08,
+        level: 0.7,
+      },
+      arp: {
+        wave: "square",
+        attack: 0.001,
+        decay: 0.06,
+        sustain: 0.25,
+        release: 0.05,
+        level: 0.55,
+      },
+      lead: {
+        wave: "square",
+        attack: 0.001,
+        decay: 0.07,
+        sustain: 0.3,
+        release: 0.06,
+        level: 0.8,
+      },
     },
     drums: {
       kick: { wave: "square", startFreq: 160, endFreq: 60, decay: 0.28, level: 0.9 },
@@ -62,9 +105,30 @@ const SYNTH_STYLE_CONFIG: Record<SynthStyle, SynthStyleConfig> = {
   },
   ambient: {
     voices: {
-      bass: { wave: "triangle", attack: 0.04, decay: 0.5, sustain: 0.7, release: 0.6 },
-      arp: { wave: "sine", attack: 0.12, decay: 0.6, sustain: 0.75, release: 0.7 },
-      lead: { wave: "sine", attack: 0.15, decay: 0.7, sustain: 0.8, release: 0.8 },
+      bass: {
+        wave: "triangle",
+        attack: 0.04,
+        decay: 0.5,
+        sustain: 0.7,
+        release: 0.6,
+        level: 0.7,
+      },
+      arp: {
+        wave: "sine",
+        attack: 0.12,
+        decay: 0.6,
+        sustain: 0.75,
+        release: 0.7,
+        level: 0.5,
+      },
+      lead: {
+        wave: "sine",
+        attack: 0.15,
+        decay: 0.7,
+        sustain: 0.8,
+        release: 0.8,
+        level: 0.8,
+      },
     },
     drums: {
       kick: { wave: "sine", startFreq: 90, endFreq: 40, decay: 0.7, level: 0.9 },
@@ -116,9 +180,10 @@ export function createSynth(context: AudioContext, mixer: Mixer): Synth {
 
     gain.gain.cancelScheduledValues(time);
     gain.gain.setValueAtTime(0, time);
-    gain.gain.linearRampToValueAtTime(1, attackEnd);
-    gain.gain.linearRampToValueAtTime(voice.sustain, sustainStart);
-    gain.gain.setValueAtTime(voice.sustain, releaseStart);
+    gain.gain.linearRampToValueAtTime(voice.level, attackEnd);
+    const sustainLevel = voice.level * voice.sustain;
+    gain.gain.linearRampToValueAtTime(sustainLevel, sustainStart);
+    gain.gain.setValueAtTime(sustainLevel, releaseStart);
     gain.gain.linearRampToValueAtTime(0, endTime);
 
     return endTime;
