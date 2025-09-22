@@ -18,6 +18,7 @@ const BASE_SETTINGS: Settings = {
   autoGain: true,
   nice: false,
   lockNotes: false,
+  synthStyle: "modern",
 };
 
 const EMPTY_USER_NOTES = { lead: null, arp: null, bass: null };

@@ -24,6 +24,79 @@
   font-size: 0.85rem;
 }
 
+.mixer__styles {
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  padding: $spacing-sm;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  background: $color-surface-alt;
+  margin: 0;
+}
+
+.mixer__styles legend {
+  margin: 0;
+  padding: 0 $spacing-xs;
+  @include label;
+}
+
+.mixer__style-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.mixer__style {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-sm;
+  padding: 0.5rem 0.75rem;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  flex: 1 1 180px;
+  position: relative;
+}
+
+.mixer__style:focus-within {
+  outline: 2px solid rgba(255, 255, 255, 0.3);
+  outline-offset: 2px;
+}
+
+.mixer__style input {
+  margin-top: 0.2rem;
+}
+
+.mixer__style-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.mixer__style-name {
+  font-weight: 600;
+}
+
+.mixer__style-description {
+  font-size: 0.75rem;
+  color: $color-text-muted;
+  line-height: 1.2;
+}
+
+.mixer__style input:checked + .mixer__style-body {
+  color: $color-text;
+}
+
+.mixer__style input:checked + .mixer__style-body .mixer__style-name {
+  color: inherit;
+}
+
+.mixer__style input:checked + .mixer__style-body .mixer__style-description {
+  color: $color-text-muted;
+}
+
 .mixer__sliders {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

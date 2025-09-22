@@ -76,6 +76,7 @@ const DEFAULT_SETTINGS: Settings = {
   autoGain: true,
   nice: false,
   lockNotes: false,
+  synthStyle: "modern",
 };
 
 const INITIAL_PROGRESSION = buildProgression(
@@ -307,8 +308,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       arp: preset.userNotes.arp ?? preset.generatedNotes.arp,
       bass: preset.userNotes.bass ?? preset.generatedNotes.bass,
     };
+    const mergedSettings: Settings = { ...DEFAULT_SETTINGS, ...preset.settings };
     set({
-      settings: preset.settings,
+      settings: mergedSettings,
       progression: preset.progression,
       userNotes: cloneUserNotes(preset.userNotes),
       generatedNotes: cloneGeneratedNotes(preset.generatedNotes),

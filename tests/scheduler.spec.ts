@@ -39,6 +39,7 @@ describe("scheduler runtime", () => {
     autoGain: true,
     nice: false,
     lockNotes: false,
+    synthStyle: "modern",
   };
 
   const events: NoteEvent[] = [
@@ -72,7 +73,11 @@ describe("scheduler runtime", () => {
       expect.any(Number),
       expect.objectContaining({ bpm: 120 }),
     );
-    expect(synth.playDrums).toHaveBeenCalled();
+    expect(synth.playDrums).toHaveBeenCalledWith(
+      expect.any(Number),
+      expect.any(Number),
+      expect.objectContaining({ bpm: 120 }),
+    );
 
     synth.play.mockClear();
 

@@ -17,6 +17,8 @@ export type KeyName =
   | "Bb"
   | "B";
 
+export type SynthStyle = "modern" | "chiptune" | "ambient";
+
 export interface Settings {
   key: KeyName;
   mode: Mode;
@@ -31,6 +33,7 @@ export interface Settings {
   autoGain: boolean;
   nice: boolean;
   lockNotes: boolean;
+  synthStyle: SynthStyle;
 }
 
 export interface Progression {
