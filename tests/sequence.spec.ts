@@ -74,4 +74,21 @@ describe("sequence generation", () => {
     const sequence = generateSequence(BASE_SETTINGS, baseProgression, EMPTY_USER_NOTES);
     expect(sequence.generated.lead.some((value) => value !== null)).toBe(true);
   });
+
+  it("normalizes user-provided material to the bar length", () => {
+    const settings = { ...BASE_SETTINGS };
+    const userLead = Array(5).fill(72);
+    const userArp = Array(settings.bars * 16 + 8).fill(60);
+    const userNotes = { lead: userLead, arp: userArp, bass: null };
+    const sequence = generateSequence(settings, baseProgression, userNotes);
+
+    const leadEvents = sequence.events.filter((event) => event.part === "lead");
+    expect(leadEvents[0]?.durSteps).toBe(10);
+    const maxArpStep = Math.max(
+      ...sequence.events
+        .filter((event) => event.part === "arp")
+        .map((event) => event.step + event.durSteps),
+    );
+    expect(maxArpStep).toBeLessThanOrEqual(settings.bars * 16);
+  });
 });
