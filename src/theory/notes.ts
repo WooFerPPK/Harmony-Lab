@@ -218,29 +218,33 @@ export function closestMidiToTarget(
   preferredOctave: number,
 ): Midi {
   const base = midiForPitchClass(targetPc, preferredOctave);
-  let candidate = base;
-  let distance = Math.abs(candidate - reference);
+  const options: number[] = [base];
 
-  while (candidate < reference - 6) {
-    candidate += 12;
-  }
-  while (candidate > reference + 6) {
-    candidate -= 12;
+  for (let value = base + 12; value <= 127; value += 12) {
+    options.push(value);
   }
 
-  distance = Math.abs(candidate - reference);
-
-  const altUp = candidate + 12;
-  const altDown = candidate - 12;
-
-  if (Math.abs(altUp - reference) < distance) {
-    candidate = altUp;
-    distance = Math.abs(candidate - reference);
+  for (let value = base - 12; value >= 0; value -= 12) {
+    options.push(value);
   }
 
-  if (Math.abs(altDown - reference) < distance) {
-    candidate = altDown;
-  }
+  const candidate = options.reduce((best, current) => {
+    const bestDistance = Math.abs(best - reference);
+    const currentDistance = Math.abs(current - reference);
+
+    if (currentDistance < bestDistance) {
+      return current;
+    }
+
+    if (
+      currentDistance === bestDistance &&
+      Math.abs(current - base) < Math.abs(best - base)
+    ) {
+      return current;
+    }
+
+    return best;
+  }, base);
 
   return clampMidi(candidate);
 }

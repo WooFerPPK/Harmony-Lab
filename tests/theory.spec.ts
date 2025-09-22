@@ -47,5 +47,6 @@ describe("theory helpers", () => {
     expect(closestMidiToTarget(0, 60, 4)).toBe(60);
     expect(closestMidiToTarget(0, 73, 4)).toBe(72);
     expect(closestMidiToTarget(0, 47, 3)).toBe(48);
+    expect(closestMidiToTarget(7, 0, 4)).toBe(7);
   });
 });
