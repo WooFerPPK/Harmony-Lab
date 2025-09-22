@@ -53,7 +53,7 @@ export function createScheduler(context: AudioContext, synth: Synth): Scheduler 
       if (time > horizon) {
         break;
       }
-      synth.playDrums(absoluteStep % loopSteps, time);
+      synth.playDrums(absoluteStep % loopSteps, time, settings);
       state.nextDrumStep += 1;
     }
 

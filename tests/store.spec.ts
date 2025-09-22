@@ -11,24 +11,22 @@ const createMixerMock = vi.fn();
 const createSynthMock = vi.fn();
 const createSchedulerMock = vi.fn();
 const createVisualizerMock = vi.fn();
-const generateSequenceMock = vi.fn(
-  (settings: Settings, _progression: unknown, _userNotes: unknown) => {
-    const bars = settings.bars;
-    const lead = Array.from({ length: bars * 8 }, (_, index) =>
-      index % 3 === 2 ? null : 70 + index,
-    );
-    const arp = Array.from({ length: bars * 16 }, (_, index) => 60 + (index % 5));
-    const bass = Array.from({ length: bars * 4 }, () => 40);
-    const events: NoteEvent[] = [
-      { part: "lead", step: 0, durSteps: 2, midi: 70 },
-      { part: "bass", step: 0, durSteps: 4, midi: 40 },
-    ];
-    return {
-      generated: { lead, arp, bass } satisfies PartNoteMap,
-      events,
-    };
-  },
-);
+const generateSequenceMock = vi.fn((settings: Settings) => {
+  const bars = settings.bars;
+  const lead = Array.from({ length: bars * 8 }, (_, index) =>
+    index % 3 === 2 ? null : 70 + index,
+  );
+  const arp = Array.from({ length: bars * 16 }, (_, index) => 60 + (index % 5));
+  const bass = Array.from({ length: bars * 4 }, () => 40);
+  const events: NoteEvent[] = [
+    { part: "lead", step: 0, durSteps: 2, midi: 70 },
+    { part: "bass", step: 0, durSteps: 4, midi: 40 },
+  ];
+  return {
+    generated: { lead, arp, bass } satisfies PartNoteMap,
+    events,
+  };
+});
 
 vi.mock("@engine/audioContext", () => ({
   ensureAudioContext: ensureAudioContextMock,

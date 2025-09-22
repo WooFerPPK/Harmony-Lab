@@ -1,8 +1,31 @@
 import type { ChangeEvent } from "react";
 
+import type { Settings } from "@theory/notes";
 import { useAppStore } from "@store/useAppStore";
 
 import "./Mixer.scss";
+
+const synthStyleOptions: {
+  value: Settings["synthStyle"];
+  label: string;
+  description: string;
+}[] = [
+  {
+    value: "modern",
+    label: "Modern",
+    description: "Punchy saw and square voices",
+  },
+  {
+    value: "chiptune",
+    label: "Chiptune",
+    description: "Crunchy 8-bit inspired tones",
+  },
+  {
+    value: "ambient",
+    label: "Ambient",
+    description: "Soft pads with slow, airy envelopes",
+  },
+];
 
 export function Mixer() {
   const settings = useAppStore((state) => state.settings);
@@ -45,6 +68,30 @@ export function Mixer() {
           <span>Nice Mode</span>
         </label>
       </div>
+      <fieldset className="mixer__styles">
+        <legend>Synth Style</legend>
+        <div className="mixer__style-options">
+          {synthStyleOptions.map((option) => {
+            const id = `synth-style-${option.value}`;
+            return (
+              <label key={option.value} className="mixer__style" htmlFor={id}>
+                <input
+                  id={id}
+                  type="radio"
+                  name="synth-style"
+                  value={option.value}
+                  checked={settings.synthStyle === option.value}
+                  onChange={() => updateSetting("synthStyle", option.value)}
+                />
+                <div className="mixer__style-body">
+                  <span className="mixer__style-name">{option.label}</span>
+                  <span className="mixer__style-description">{option.description}</span>
+                </div>
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
       <div className="mixer__sliders">
         <label className="mixer__field">
           <span className="mixer__label">Filter Cutoff</span>

@@ -25,6 +25,7 @@ const BASE_PRESET: Omit<PresetPayload, "name" | "createdAt"> = {
     autoGain: true,
     nice: false,
     lockNotes: false,
+    synthStyle: "modern",
   },
   progression: { bars: 4, degrees: [0, 4, 5, 3] },
   userNotes: { lead: null, arp: null, bass: null },
