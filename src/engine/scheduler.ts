@@ -32,6 +32,7 @@ export interface Scheduler {
   setEvents(events: NoteEvent[]): void;
   updateSettings(settings: Settings): void;
   isRunning(): boolean;
+  setOnNote(listener: (event: NoteEvent | null) => void): void;
 }
 
 export function createScheduler(context: AudioContext, synth: Synth): Scheduler {
@@ -39,6 +40,7 @@ export function createScheduler(context: AudioContext, synth: Synth): Scheduler 
   let intervalId: number | null = null;
   let cachedEvents: NoteEvent[] = [];
   let cachedSettings: Settings | null = null;
+  let noteListener: ((event: NoteEvent | null) => void) | null = null;
 
   function scheduleLoop() {
     if (!state) {
@@ -64,6 +66,7 @@ export function createScheduler(context: AudioContext, synth: Synth): Scheduler 
       if (time > horizon) {
         break;
       }
+      noteListener?.({ ...event });
       synth.play(event, time, settings);
       state.nextEventIndex += 1;
       if (state.nextEventIndex >= events.length) {
@@ -91,6 +94,7 @@ export function createScheduler(context: AudioContext, synth: Synth): Scheduler 
   function start(events: NoteEvent[], settings: Settings) {
     resetSchedule(events, settings);
     synth.stopAll();
+    noteListener?.(null);
     if (intervalId !== null) {
       clearInterval(intervalId);
     }
@@ -98,6 +102,7 @@ export function createScheduler(context: AudioContext, synth: Synth): Scheduler 
       scheduleLoop,
       TICK_INTERVAL * 1000,
     ) as unknown as number;
+    scheduleLoop();
   }
 
   function stop() {
@@ -107,6 +112,7 @@ export function createScheduler(context: AudioContext, synth: Synth): Scheduler 
     }
     synth.stopAll();
     state = null;
+    noteListener?.(null);
   }
 
   function setEvents(events: NoteEvent[]) {
@@ -118,6 +124,7 @@ export function createScheduler(context: AudioContext, synth: Synth): Scheduler 
       state.nextDrumStep = 0;
       state.startTime = context.currentTime;
     }
+    noteListener?.(null);
   }
 
   function updateSettings(settings: Settings) {
@@ -130,10 +137,16 @@ export function createScheduler(context: AudioContext, synth: Synth): Scheduler 
       state.loopCount = 0;
       state.nextDrumStep = 0;
     }
+    noteListener?.(null);
   }
 
   function isRunning() {
     return intervalId !== null;
+  }
+
+  function setOnNote(listener: (event: NoteEvent | null) => void) {
+    noteListener = listener;
+    noteListener?.(null);
   }
 
   return {
@@ -142,5 +155,6 @@ export function createScheduler(context: AudioContext, synth: Synth): Scheduler 
     setEvents,
     updateSettings,
     isRunning,
+    setOnNote,
   };
 }

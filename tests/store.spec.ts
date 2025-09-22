@@ -80,6 +80,7 @@ describe("app store", () => {
     setEvents: ReturnType<typeof vi.fn>;
     updateSettings: ReturnType<typeof vi.fn>;
     isRunning: ReturnType<typeof vi.fn>;
+    setOnNote: ReturnType<typeof vi.fn>;
   };
   let visualizerMock: VisualizerHandle;
   const audioContext = {
@@ -115,6 +116,7 @@ describe("app store", () => {
       setEvents: vi.fn(),
       updateSettings: vi.fn(),
       isRunning: vi.fn(() => true),
+      setOnNote: vi.fn(),
     };
     schedulerMock = schedulerSpies as unknown as Scheduler;
     visualizerMock = {
@@ -181,6 +183,7 @@ describe("app store", () => {
     expect(createMixerMock).toHaveBeenCalled();
     expect(createSynthMock).toHaveBeenCalledWith(audioContext, mixerMock);
     expect(createSchedulerMock).toHaveBeenCalledWith(audioContext, synthMock);
+    expect(schedulerSpies.setOnNote).toHaveBeenCalled();
     const startedWith = schedulerSpies.start.mock.calls.at(-1);
     expect(startedWith?.[0]).toEqual(useAppStore.getState().events);
     expect(startedWith?.[1]).toEqual(useAppStore.getState().settings);

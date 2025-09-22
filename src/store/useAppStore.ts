@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type {
   Degree,
   Mode,
+  NoteEvent,
   PartName,
   PartNoteMap,
   Progression,
@@ -36,6 +37,8 @@ interface UserNotesMap {
   bass: (number | null)[] | null;
 }
 
+type NowPlayingMap = Record<PartName, number | null>;
+
 interface AppState {
   settings: Settings;
   progression: Progression;
@@ -43,6 +46,7 @@ interface AppState {
   generatedNotes: PartNoteMap;
   noteText: NoteTextMap;
   events: ReturnType<typeof generateSequence>["events"];
+  nowPlaying: NowPlayingMap;
   visualizer: VisualizerHandle | null;
   playing: boolean;
   presets: PresetPayload[];
@@ -84,6 +88,7 @@ const INITIAL_PROGRESSION = buildProgression(
   DEFAULT_SETTINGS.bars,
 );
 const EMPTY_NOTES: UserNotesMap = { lead: null, arp: null, bass: null };
+const EMPTY_NOW_PLAYING: NowPlayingMap = { lead: null, arp: null, bass: null };
 const INITIAL_SEQUENCE = generateSequence(
   DEFAULT_SETTINGS,
   INITIAL_PROGRESSION,
@@ -101,6 +106,7 @@ let synth: Synth | null = null;
 let scheduler: Scheduler | null = null;
 let visualizer: VisualizerHandle | null = null;
 let autoGainTimer: ReturnType<typeof setInterval> | null = null;
+let schedulerNoteObserver: ((event: NoteEvent | null) => void) | null = null;
 
 async function ensureEngine() {
   if (!mixer || !synth || !scheduler || !visualizer) {
@@ -108,6 +114,9 @@ async function ensureEngine() {
     mixer = createMixer(context);
     synth = createSynth(context, mixer);
     scheduler = createScheduler(context, synth);
+    if (schedulerNoteObserver) {
+      scheduler.setOnNote(schedulerNoteObserver);
+    }
     visualizer = createVisualizer(mixer);
   }
   if (!mixer || !synth || !scheduler || !visualizer) {
@@ -169,163 +178,192 @@ function cloneUserNotes(notes: UserNotesMap): UserNotesMap {
   };
 }
 
-export const useAppStore = create<AppState>((set, get) => ({
-  settings: DEFAULT_SETTINGS,
-  progression: INITIAL_PROGRESSION,
-  userNotes: { ...EMPTY_NOTES },
-  generatedNotes: cloneGeneratedNotes(INITIAL_SEQUENCE.generated),
-  noteText: INITIAL_NOTE_TEXT,
-  events: [...INITIAL_SEQUENCE.events],
-  visualizer: null,
-  playing: false,
-  presets: listPresets(),
-  updateSetting: (key, value) => {
-    set((state) => {
-      const nextSettings: Settings = { ...state.settings };
-      nextSettings[key] = value;
-      let nextProgression = state.progression;
-      if (key === "bars") {
-        const barsValue = value as Settings["bars"];
-        nextSettings.bars = barsValue;
-        nextProgression = syncProgression(
-          nextSettings.mode,
-          barsValue,
-          state.progression,
-        );
-      }
-      if (key === "mode") {
-        const modeValue = value as Mode;
-        nextSettings.mode = modeValue;
-        nextProgression = syncProgression(
-          modeValue,
-          nextSettings.bars,
-          state.progression,
-        );
-      }
-      if (mixer) {
-        mixer.updateFromSettings(nextSettings);
-      }
+export const useAppStore = create<AppState>((set, get) => {
+  const handleSchedulerNote = (event: NoteEvent | null) => {
+    if (!event) {
+      set({ nowPlaying: { ...EMPTY_NOW_PLAYING } });
+      return;
+    }
+    set((state) => ({
+      nowPlaying: { ...state.nowPlaying, [event.part]: event.midi },
+    }));
+  };
+
+  schedulerNoteObserver = handleSchedulerNote;
+  if (scheduler) {
+    scheduler.setOnNote(handleSchedulerNote);
+  }
+
+  return {
+    settings: DEFAULT_SETTINGS,
+    progression: INITIAL_PROGRESSION,
+    userNotes: { ...EMPTY_NOTES },
+    generatedNotes: cloneGeneratedNotes(INITIAL_SEQUENCE.generated),
+    noteText: INITIAL_NOTE_TEXT,
+    events: [...INITIAL_SEQUENCE.events],
+    nowPlaying: { ...EMPTY_NOW_PLAYING },
+    visualizer: null,
+    playing: false,
+    presets: listPresets(),
+    updateSetting: (key, value) => {
+      set((state) => {
+        const nextSettings: Settings = { ...state.settings };
+        nextSettings[key] = value;
+        let nextProgression = state.progression;
+        if (key === "bars") {
+          const barsValue = value as Settings["bars"];
+          nextSettings.bars = barsValue;
+          nextProgression = syncProgression(
+            nextSettings.mode,
+            barsValue,
+            state.progression,
+          );
+        }
+        if (key === "mode") {
+          const modeValue = value as Mode;
+          nextSettings.mode = modeValue;
+          nextProgression = syncProgression(
+            modeValue,
+            nextSettings.bars,
+            state.progression,
+          );
+        }
+        if (mixer) {
+          mixer.updateFromSettings(nextSettings);
+        }
+        if (scheduler) {
+          scheduler.updateSettings(nextSettings);
+        }
+        return { settings: nextSettings, progression: nextProgression };
+      });
+      get().generate();
+    },
+    updateProgression: (degrees) => {
+      set((state) => {
+        const bars = state.settings.bars;
+        const normalized = degrees.slice(0, bars);
+        while (normalized.length < bars) {
+          normalized.push(
+            state.progression.degrees[
+              normalized.length % state.progression.degrees.length
+            ],
+          );
+        }
+        return {
+          progression: { bars, degrees: normalized },
+        };
+      });
+      get().generate();
+    },
+    generate: () => {
+      const state = get();
+      const sequence = generateSequence(
+        state.settings,
+        state.progression,
+        state.userNotes,
+      );
+      const noteText = state.settings.lockNotes
+        ? state.noteText
+        : deriveNoteText(sequence.generated);
+      const nextUserNotes = state.settings.lockNotes
+        ? state.userNotes
+        : { lead: null, arp: null, bass: null };
+      set({
+        generatedNotes: sequence.generated,
+        noteText,
+        events: sequence.events,
+        userNotes: nextUserNotes,
+        nowPlaying: { ...EMPTY_NOW_PLAYING },
+      });
       if (scheduler) {
-        scheduler.updateSettings(nextSettings);
+        scheduler.setEvents(sequence.events);
       }
-      return { settings: nextSettings, progression: nextProgression };
-    });
-    get().generate();
-  },
-  updateProgression: (degrees) => {
-    set((state) => {
+    },
+    start: async () => {
+      const state = get();
+      const engine = await ensureEngine();
+      engine.mixer.updateFromSettings(state.settings);
+      scheduler?.start(state.events, state.settings);
+      startAutoGainTimer(engine.mixer);
+      set({ playing: true, visualizer: engine.visualizer });
+    },
+    stop: () => {
+      scheduler?.stop();
+      stopAutoGainTimer();
+      set({ playing: false, nowPlaying: { ...EMPTY_NOW_PLAYING } });
+    },
+    setNoteText: (part, value) => {
+      set((state) => ({ noteText: { ...state.noteText, [part]: value } }));
+    },
+    applyNoteText: (part) => {
+      const state = get();
       const bars = state.settings.bars;
-      const normalized = degrees.slice(0, bars);
-      while (normalized.length < bars) {
-        normalized.push(
-          state.progression.degrees[normalized.length % state.progression.degrees.length],
-        );
-      }
-      return {
-        progression: { bars, degrees: normalized },
+      const expectedLength = bars * (part === "lead" ? 8 : part === "arp" ? 16 : 4);
+      const { midis, invalidTokens } = parseNoteText(
+        state.noteText[part],
+        expectedLength,
+      );
+      const userNotes = { ...state.userNotes, [part]: midis } as UserNotesMap;
+      set({ userNotes });
+      get().generate();
+      return { invalidTokens };
+    },
+    clearNotes: () => {
+      set({ userNotes: { lead: null, arp: null, bass: null } });
+      const state = get();
+      const noteText = deriveNoteText(state.generatedNotes);
+      set({ noteText, nowPlaying: { ...EMPTY_NOW_PLAYING } });
+      get().generate();
+    },
+    setLockNotes: (lock) => {
+      set((state) => ({ settings: { ...state.settings, lockNotes: lock } }));
+    },
+    refreshPresets: () => {
+      set({ presets: listPresets() });
+    },
+    savePreset: (name) => {
+      const state = get();
+      const payload: PresetPayload = {
+        name,
+        createdAt: Date.now(),
+        settings: state.settings,
+        progression: state.progression,
+        userNotes: cloneUserNotes(state.userNotes),
+        generatedNotes: cloneGeneratedNotes(state.generatedNotes),
       };
-    });
-    get().generate();
-  },
-  generate: () => {
-    const state = get();
-    const sequence = generateSequence(state.settings, state.progression, state.userNotes);
-    const noteText = state.settings.lockNotes
-      ? state.noteText
-      : deriveNoteText(sequence.generated);
-    const nextUserNotes = state.settings.lockNotes
-      ? state.userNotes
-      : { lead: null, arp: null, bass: null };
-    set({
-      generatedNotes: sequence.generated,
-      noteText,
-      events: sequence.events,
-      userNotes: nextUserNotes,
-    });
-    if (scheduler) {
-      scheduler.setEvents(sequence.events);
-    }
-  },
-  start: async () => {
-    const state = get();
-    const engine = await ensureEngine();
-    engine.mixer.updateFromSettings(state.settings);
-    scheduler?.start(state.events, state.settings);
-    startAutoGainTimer(engine.mixer);
-    set({ playing: true, visualizer: engine.visualizer });
-  },
-  stop: () => {
-    scheduler?.stop();
-    stopAutoGainTimer();
-    set({ playing: false });
-  },
-  setNoteText: (part, value) => {
-    set((state) => ({ noteText: { ...state.noteText, [part]: value } }));
-  },
-  applyNoteText: (part) => {
-    const state = get();
-    const bars = state.settings.bars;
-    const expectedLength = bars * (part === "lead" ? 8 : part === "arp" ? 16 : 4);
-    const { midis, invalidTokens } = parseNoteText(state.noteText[part], expectedLength);
-    const userNotes = { ...state.userNotes, [part]: midis } as UserNotesMap;
-    set({ userNotes });
-    get().generate();
-    return { invalidTokens };
-  },
-  clearNotes: () => {
-    set({ userNotes: { lead: null, arp: null, bass: null } });
-    const state = get();
-    const noteText = deriveNoteText(state.generatedNotes);
-    set({ noteText });
-    get().generate();
-  },
-  setLockNotes: (lock) => {
-    set((state) => ({ settings: { ...state.settings, lockNotes: lock } }));
-  },
-  refreshPresets: () => {
-    set({ presets: listPresets() });
-  },
-  savePreset: (name) => {
-    const state = get();
-    const payload: PresetPayload = {
-      name,
-      createdAt: Date.now(),
-      settings: state.settings,
-      progression: state.progression,
-      userNotes: cloneUserNotes(state.userNotes),
-      generatedNotes: cloneGeneratedNotes(state.generatedNotes),
-    };
-    savePresetToStorage(payload);
-    get().refreshPresets();
-  },
-  loadPreset: (name) => {
-    const preset = loadPresetFromStorage(name);
-    if (!preset) {
-      return false;
-    }
-    const noteSource = {
-      lead: preset.userNotes.lead ?? preset.generatedNotes.lead,
-      arp: preset.userNotes.arp ?? preset.generatedNotes.arp,
-      bass: preset.userNotes.bass ?? preset.generatedNotes.bass,
-    };
-    const mergedSettings: Settings = { ...DEFAULT_SETTINGS, ...preset.settings };
-    set({
-      settings: mergedSettings,
-      progression: preset.progression,
-      userNotes: cloneUserNotes(preset.userNotes),
-      generatedNotes: cloneGeneratedNotes(preset.generatedNotes),
-      noteText: deriveNoteText(noteSource),
-    });
-    get().generate();
-    return true;
-  },
-  exportPreset: (name) => {
-    const preset = loadPresetFromStorage(name);
-    return preset ? serializePreset(preset) : null;
-  },
-  importPreset: (serialized) => {
-    const parsed = parsePreset(serialized);
-    savePresetToStorage(parsed);
-    get().refreshPresets();
-  },
-}));
+      savePresetToStorage(payload);
+      get().refreshPresets();
+    },
+    loadPreset: (name) => {
+      const preset = loadPresetFromStorage(name);
+      if (!preset) {
+        return false;
+      }
+      const noteSource = {
+        lead: preset.userNotes.lead ?? preset.generatedNotes.lead,
+        arp: preset.userNotes.arp ?? preset.generatedNotes.arp,
+        bass: preset.userNotes.bass ?? preset.generatedNotes.bass,
+      };
+      const mergedSettings: Settings = { ...DEFAULT_SETTINGS, ...preset.settings };
+      set({
+        settings: mergedSettings,
+        progression: preset.progression,
+        userNotes: cloneUserNotes(preset.userNotes),
+        generatedNotes: cloneGeneratedNotes(preset.generatedNotes),
+        noteText: deriveNoteText(noteSource),
+        nowPlaying: { ...EMPTY_NOW_PLAYING },
+      });
+      get().generate();
+      return true;
+    },
+    exportPreset: (name) => {
+      const preset = loadPresetFromStorage(name);
+      return preset ? serializePreset(preset) : null;
+    },
+    importPreset: (serialized) => {
+      const parsed = parsePreset(serialized);
+      savePresetToStorage(parsed);
+      get().refreshPresets();
+    },
+  };
+});
