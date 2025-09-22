@@ -1,0 +1,132 @@
+@use "@styles/variables" as *;
+@use "@styles/mixins" as *;
+
+.composition {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.composition__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.composition__lock {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: 0.85rem;
+  color: $color-text-muted;
+}
+
+.composition__description {
+  margin: 0;
+  font-size: 0.95rem;
+  color: $color-text-muted;
+}
+
+.composition__group {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.composition__subtitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.composition__progression-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: $spacing-sm;
+}
+
+.composition__progression-cell {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  background: $color-surface-alt;
+  padding: $spacing-sm;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+}
+
+.composition__parts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: $spacing-md;
+}
+
+.composition__part {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.composition__part-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $spacing-sm;
+}
+
+.composition__part-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.composition__label {
+  @include label;
+}
+
+.composition__description-text {
+  font-size: 0.85rem;
+  color: $color-text-muted;
+}
+
+.composition__now-playing {
+  font-size: 0.85rem;
+  color: $color-accent;
+  white-space: nowrap;
+}
+
+.composition__textarea {
+  min-height: 130px;
+  padding: $spacing-sm;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background: $color-surface-alt;
+  resize: vertical;
+}
+
+.composition__hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: $color-text-muted;
+}
+
+.composition__error {
+  color: #ff7e7e;
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.composition__actions {
+  display: flex;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+}
+
+.composition__btn {
+  @include button-ghost;
+}
+
+.composition__btn--primary {
+  @include button-primary;
+}

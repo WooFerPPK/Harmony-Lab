@@ -1,11 +1,13 @@
 import { useEffect, useRef } from "react";
 
 import { useAppStore } from "@store/useAppStore";
+import { midiToNoteToken } from "@theory/notes";
 
 import "./Visualizer.scss";
 
 export function Visualizer() {
   const visualizer = useAppStore((state) => state.visualizer);
+  const nowPlaying = useAppStore((state) => state.nowPlaying);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -65,6 +67,19 @@ export function Visualizer() {
         {!visualizer && (
           <p className="visualizer__placeholder">Start playback to see the waveform.</p>
         )}
+        <dl className="visualizer__legend" aria-live="polite">
+          {(["lead", "arp", "bass"] as const).map((part) => {
+            const token = midiToNoteToken(nowPlaying[part]);
+            return (
+              <div key={part} className="visualizer__legend-row">
+                <dt className="visualizer__legend-label">{part}</dt>
+                <dd className="visualizer__legend-value">
+                  {token === "---" ? "rest" : token}
+                </dd>
+              </div>
+            );
+          })}
+        </dl>
       </div>
     </section>
   );
